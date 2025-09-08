@@ -1,91 +1,132 @@
-# Save as pookalam_turtle.py and run: python pookalam_turtle.py
-import turtle
-import math
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.6.0/p5.min.js"></script>
+    <title>Digital Pookalam</title>
+    <style>
+      html,body { margin:0; height:100%; background:#7f3f3f; }
+      canvas { display:block; margin:0 auto; }
+      .wrap { display:flex; align-items:center; justify-content:center; height:100vh; }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <script>
+      // p5.js sketch
+      let bgColor = '#7f3f3f';
+      let lineColor = '#f1e9e6';
+      function setup(){
+        let s = min(windowWidth, windowHeight) * 0.9;
+        createCanvas(s, s);
+        angleMode(RADIANS);
+        noLoop();
+        drawArtwork();
+      }
+      function windowResized(){ redraw(); resizeCanvas(min(windowWidth, windowHeight)*0.9, min(windowWidth, windowHeight)*0.9); drawArtwork(); }
+      function drawArtwork(){
+        background(bgColor);
+        translate(width/2, height/2);
+        stroke(lineColor);
+        noFill();
+        strokeWeight(4);
+        drawMandala(0,0, width*0.38);
+        drawInnerEmblem(0,0, width*0.19);
+      }
 
-screen = turtle.Screen()
-screen.setup(900,900)
-screen.bgcolor("#7f3f3f")  # maroon-like background
+      function drawMandala(cx, cy, outerR){
+        push();
+        translate(cx,cy);
+        strokeWeight(6);
+        circle(0,0, outerR*2 + 20);
+        strokeWeight(4);
+        circle(0,0, outerR*2 - 6);
 
-t = turtle.Turtle()
-t.hideturtle()
-t.speed(0)
-t.pensize(4)
-t.color("#f1e9e6")
+        let layers = [
+          {r: outerR - 30, petals: 20, scale: 1.0},
+          {r: outerR - 90, petals: 20, scale: 0.9}
+        ];
+        for (let L of layers){
+          for (let i=0;i<L.petals;i++){
+            let a = TWO_PI * i / L.petals;
+            push();
+            rotate(a);
+            translate(L.r, 0);
+            drawPetal(0,0, 120 * L.scale * (width/800), 60 * L.scale * (width/800));
+            pop();
+          }
+        }
+        strokeWeight(5);
+        circle(0,0, outerR*1.1);
+        pop();
+      }
 
-def draw_circle(radius, pensz=4):
-    t.pensize(pensz)
-    t.penup()
-    t.goto(0, -radius)
-    t.pendown()
-    t.circle(radius)
-    t.penup()
-    t.home()
+      function drawPetal(x,y,w,h){
+        push();
+        stroke(lineColor);
+        strokeWeight(3);
+        beginShape();
+        vertex(x, y);
+        bezierVertex(x - w*0.35, y - h*0.25, x - w*0.5, y - h*0.9, x, y - h);
+        bezierVertex(x + w*0.5, y - h*0.9, x + w*0.35, y - h*0.25, x, y);
+        endShape(CLOSE);
+        strokeWeight(2);
+        line(x, y - h*0.85, x, y - h*0.25);
+        pop();
+      }
 
-def petal_at(angle, radius, w, h):
-    # position to start (on circumference)
-    x = radius * math.cos(angle)
-    y = radius * math.sin(angle)
-    t.penup()
-    t.goto(0,0)
-    t.setheading(math.degrees(angle))
-    t.forward(radius)
-    t.left(90)
-    t.pendown()
-    t.begin_poly()
-    # draw a leaf-like curve using approximate arcs
-    for i in range(20):
-        theta = math.radians(i * (180/19))
-        xx = w * math.cos(theta)
-        yy = -h * math.sin(theta)
-        t.goto(x + xx*math.cos(angle) - yy*math.sin(angle),
-               y + xx*math.sin(angle) + yy*math.cos(angle))
-    # other side
-    for i in range(20):
-        theta = math.radians(180 - i * (180/19))
-        xx = w * math.cos(theta)
-        yy = -h * math.sin(theta)
-        t.goto(x + xx*math.cos(angle) - yy*math.sin(angle),
-               y + xx*math.sin(angle) + yy*math.cos(angle))
-    t.penup()
-    t.home()
+      function drawInnerEmblem(cx,cy,radius){
+        push();
+        translate(cx,cy);
+        stroke(lineColor);
+        strokeWeight(4);
+        circle(0,0, radius*2);
 
-# draw outer rings
-draw_circle(340, pensz=6)
-draw_circle(320, pensz=4)
+        push();
+        translate(0, -radius*0.12);
+        rotate(-0.45);
+        strokeWeight(3.5);
+        noFill();
+        beginShape();
+        vertex(-radius*0.25, -radius*0.05);
+        bezierVertex(radius*0.05, -radius*0.45, radius*0.9, -radius*0.85, radius*1.05, -radius*0.85);
+        endShape();
 
-# draw two layers of petals
-num = 20
-for layer_radius, w, h in [(260, 100, 45), (200, 90, 40)]:
-    for i in range(num):
-        ang = 2*math.pi*i/num
-        petal_at(ang, layer_radius, w, h)
+        for (let i=0;i<4;i++){
+          let t = i/4;
+          let px = lerp(-radius*0.08, radius*0.85, t);
+          let py = - (0.04 + 0.22*t)*radius;
+          beginShape();
+          vertex(px-6, py+6);
+          bezierVertex(px+18, py-18, px+36, py-28, px+62, py-36);
+          endShape();
+        }
+        pop();
 
-# inner ring
-draw_circle(200, pensz=5)
+        strokeWeight(3.2);
+        beginShape();
+        vertex(-radius*0.6, radius*0.22);
+        bezierVertex(-radius*0.08, radius*0.46, radius*0.5, radius*0.46, radius*0.95, radius*0.18);
+        endShape();
 
-# inner emblem (simple approximation)
-t.pensize(3)
-t.penup()
-t.goto(-30, -20)
-t.pendown()
-t.circle(18)  # central dot
+        strokeWeight(2.6);
+        beginShape();
+        vertex(-radius*0.45, radius*0.34);
+        bezierVertex(0, radius*0.48, radius*0.6, radius*0.42, radius*0.85, radius*0.26);
+        endShape();
 
-# draw boat-like shapes
-t.penup(); t.goto(-140, 20); t.pendown()
-t.setheading(-10)
-t.circle(180, 40)  # curve for hull
+        beginShape();
+        vertex(-radius*0.52, radius*0.14);
+        bezierVertex(-radius*0.06, radius*0.22, radius*0.45, radius*0.18, radius*0.8, radius*0.06);
+        endShape();
 
-t.penup(); t.goto(-120, 60); t.pendown()
-t.setheading(-8)
-t.circle(150, 35)
+        strokeWeight(4);
+        circle(-radius*0.02, -radius*0.12, radius*0.12*2);
+        pop();
+      }
+      </script>
+    </div>
+  </body>
+</html>
 
-# stylized palm / leaf curved stroke
-t.penup(); t.goto(40,80); t.pendown()
-t.setheading(30)
-t.circle(-120, 50)
-t.penup(); t.goto(20,120); t.pendown()
-t.setheading(20)
-t.circle(-100, 40)
 
-t.hideturtle()
-turtle.done()
