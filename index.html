@@ -1,0 +1,91 @@
+# Save as pookalam_turtle.py and run: python pookalam_turtle.py
+import turtle
+import math
+
+screen = turtle.Screen()
+screen.setup(900,900)
+screen.bgcolor("#7f3f3f")  # maroon-like background
+
+t = turtle.Turtle()
+t.hideturtle()
+t.speed(0)
+t.pensize(4)
+t.color("#f1e9e6")
+
+def draw_circle(radius, pensz=4):
+    t.pensize(pensz)
+    t.penup()
+    t.goto(0, -radius)
+    t.pendown()
+    t.circle(radius)
+    t.penup()
+    t.home()
+
+def petal_at(angle, radius, w, h):
+    # position to start (on circumference)
+    x = radius * math.cos(angle)
+    y = radius * math.sin(angle)
+    t.penup()
+    t.goto(0,0)
+    t.setheading(math.degrees(angle))
+    t.forward(radius)
+    t.left(90)
+    t.pendown()
+    t.begin_poly()
+    # draw a leaf-like curve using approximate arcs
+    for i in range(20):
+        theta = math.radians(i * (180/19))
+        xx = w * math.cos(theta)
+        yy = -h * math.sin(theta)
+        t.goto(x + xx*math.cos(angle) - yy*math.sin(angle),
+               y + xx*math.sin(angle) + yy*math.cos(angle))
+    # other side
+    for i in range(20):
+        theta = math.radians(180 - i * (180/19))
+        xx = w * math.cos(theta)
+        yy = -h * math.sin(theta)
+        t.goto(x + xx*math.cos(angle) - yy*math.sin(angle),
+               y + xx*math.sin(angle) + yy*math.cos(angle))
+    t.penup()
+    t.home()
+
+# draw outer rings
+draw_circle(340, pensz=6)
+draw_circle(320, pensz=4)
+
+# draw two layers of petals
+num = 20
+for layer_radius, w, h in [(260, 100, 45), (200, 90, 40)]:
+    for i in range(num):
+        ang = 2*math.pi*i/num
+        petal_at(ang, layer_radius, w, h)
+
+# inner ring
+draw_circle(200, pensz=5)
+
+# inner emblem (simple approximation)
+t.pensize(3)
+t.penup()
+t.goto(-30, -20)
+t.pendown()
+t.circle(18)  # central dot
+
+# draw boat-like shapes
+t.penup(); t.goto(-140, 20); t.pendown()
+t.setheading(-10)
+t.circle(180, 40)  # curve for hull
+
+t.penup(); t.goto(-120, 60); t.pendown()
+t.setheading(-8)
+t.circle(150, 35)
+
+# stylized palm / leaf curved stroke
+t.penup(); t.goto(40,80); t.pendown()
+t.setheading(30)
+t.circle(-120, 50)
+t.penup(); t.goto(20,120); t.pendown()
+t.setheading(20)
+t.circle(-100, 40)
+
+t.hideturtle()
+turtle.done()
