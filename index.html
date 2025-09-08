@@ -5,128 +5,115 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.6.0/p5.min.js"></script>
     <title>Digital Pookalam</title>
     <style>
-      html,body { margin:0; height:100%; background:#7f3f3f; }
-      canvas { display:block; margin:0 auto; }
-      .wrap { display:flex; align-items:center; justify-content:center; height:100vh; }
+      html,body {
+        margin:0;
+        height:100%;
+        background:#2f2f2f; /* floor background */
+      }
+      canvas {
+        display:block;
+        margin:auto;
+      }
     </style>
   </head>
   <body>
-    <div class="wrap">
-      <script>
-      // p5.js sketch
-      let bgColor = '#7f3f3f';
-      let lineColor = '#f1e9e6';
-      function setup(){
-        let s = min(windowWidth, windowHeight) * 0.9;
-        createCanvas(s, s);
-        angleMode(RADIANS);
+    <script>
+      function setup() {
+        createCanvas(600, 600);
+        angleMode(DEGREES);
         noLoop();
-        drawArtwork();
       }
-      function windowResized(){ redraw(); resizeCanvas(min(windowWidth, windowHeight)*0.9, min(windowWidth, windowHeight)*0.9); drawArtwork(); }
-      function drawArtwork(){
-        background(bgColor);
+
+      function draw() {
+        background("#2f2f2f");
         translate(width/2, height/2);
-        stroke(lineColor);
-        noFill();
-        strokeWeight(4);
-        drawMandala(0,0, width*0.38);
-        drawInnerEmblem(0,0, width*0.19);
+
+        // Colors similar to the real pookalam
+        let colors = ["#e63946", "#ffcc00", "#ff9933", "#006400", "#ffcc66", "#ff6699"];
+
+        // Outer orange ring
+        flowerRing(280, 320, "#ff6600");
+
+        // Yellow star layer
+        starLayer(8, 220, 280, "#ffcc00");
+
+        // Green triangles inside star
+        starLayer(8, 220, 280, "#004d00", true);
+
+        // Inner red-yellow alternating
+        alternatingPetals(12, 120, 220, "#e63946", "#fff176");
+
+        // Pink center
+        flowerCircle(0, 0, 120, "#ff6699");
       }
 
-      function drawMandala(cx, cy, outerR){
-        push();
-        translate(cx,cy);
-        strokeWeight(6);
-        circle(0,0, outerR*2 + 20);
-        strokeWeight(4);
-        circle(0,0, outerR*2 - 6);
-
-        let layers = [
-          {r: outerR - 30, petals: 20, scale: 1.0},
-          {r: outerR - 90, petals: 20, scale: 0.9}
-        ];
-        for (let L of layers){
-          for (let i=0;i<L.petals;i++){
-            let a = TWO_PI * i / L.petals;
-            push();
-            rotate(a);
-            translate(L.r, 0);
-            drawPetal(0,0, 120 * L.scale * (width/800), 60 * L.scale * (width/800));
-            pop();
+      // Draws a filled ring of flower-like dots
+      function flowerRing(innerR, outerR, col) {
+        noStroke();
+        for (let r = innerR; r < outerR; r += 2) {
+          for (let ang = 0; ang < 360; ang += 3) {
+            let x = r * cos(ang) + random(-1,1);
+            let y = r * sin(ang) + random(-1,1);
+            fill(col);
+            circle(x, y, 3);
           }
         }
-        strokeWeight(5);
-        circle(0,0, outerR*1.1);
-        pop();
       }
 
-      function drawPetal(x,y,w,h){
-        push();
-        stroke(lineColor);
-        strokeWeight(3);
-        beginShape();
-        vertex(x, y);
-        bezierVertex(x - w*0.35, y - h*0.25, x - w*0.5, y - h*0.9, x, y - h);
-        bezierVertex(x + w*0.5, y - h*0.9, x + w*0.35, y - h*0.25, x, y);
-        endShape(CLOSE);
-        strokeWeight(2);
-        line(x, y - h*0.85, x, y - h*0.25);
-        pop();
-      }
+      // Star-shaped pattern (like triangles around circle)
+      function starLayer(n, innerR, outerR, col, offset=false) {
+        noStroke();
+        let step = 360 / n;
+        for (let i=0; i<n; i++) {
+          let ang1 = i*step + (offset? step/2 : 0);
+          let ang2 = ang1 + step/2;
+          let x1 = innerR * cos(ang1);
+          let y1 = innerR * sin(ang1);
+          let x2 = innerR * cos(ang2);
+          let y2 = innerR * sin(ang2);
+          let x3 = outerR * cos(ang1 + step/4);
+          let y3 = outerR * sin(ang1 + step/4);
 
-      function drawInnerEmblem(cx,cy,radius){
-        push();
-        translate(cx,cy);
-        stroke(lineColor);
-        strokeWeight(4);
-        circle(0,0, radius*2);
-
-        push();
-        translate(0, -radius*0.12);
-        rotate(-0.45);
-        strokeWeight(3.5);
-        noFill();
-        beginShape();
-        vertex(-radius*0.25, -radius*0.05);
-        bezierVertex(radius*0.05, -radius*0.45, radius*0.9, -radius*0.85, radius*1.05, -radius*0.85);
-        endShape();
-
-        for (let i=0;i<4;i++){
-          let t = i/4;
-          let px = lerp(-radius*0.08, radius*0.85, t);
-          let py = - (0.04 + 0.22*t)*radius;
+          fill(col);
           beginShape();
-          vertex(px-6, py+6);
-          bezierVertex(px+18, py-18, px+36, py-28, px+62, py-36);
-          endShape();
+          vertex(x1, y1);
+          vertex(x2, y2);
+          vertex(x3, y3);
+          endShape(CLOSE);
         }
-        pop();
-
-        strokeWeight(3.2);
-        beginShape();
-        vertex(-radius*0.6, radius*0.22);
-        bezierVertex(-radius*0.08, radius*0.46, radius*0.5, radius*0.46, radius*0.95, radius*0.18);
-        endShape();
-
-        strokeWeight(2.6);
-        beginShape();
-        vertex(-radius*0.45, radius*0.34);
-        bezierVertex(0, radius*0.48, radius*0.6, radius*0.42, radius*0.85, radius*0.26);
-        endShape();
-
-        beginShape();
-        vertex(-radius*0.52, radius*0.14);
-        bezierVertex(-radius*0.06, radius*0.22, radius*0.45, radius*0.18, radius*0.8, radius*0.06);
-        endShape();
-
-        strokeWeight(4);
-        circle(-radius*0.02, -radius*0.12, radius*0.12*2);
-        pop();
       }
-      </script>
-    </div>
+
+      // Alternating colored petals
+      function alternatingPetals(n, innerR, outerR, col1, col2) {
+        let step = 360 / n;
+        for (let i=0; i<n; i++) {
+          let ang1 = i*step;
+          let ang2 = ang1 + step;
+          let c = (i%2==0)? col1 : col2;
+          fill(c);
+          beginShape();
+          vertex(0,0);
+          vertex(innerR*cos(ang1), innerR*sin(ang1));
+          vertex(outerR*cos(ang2), outerR*sin(ang2));
+          endShape(CLOSE);
+        }
+      }
+
+      // Center flower circle
+      function flowerCircle(x, y, r, col) {
+        noStroke();
+        for (let rad = 0; rad < r; rad += 2) {
+          for (let ang = 0; ang < 360; ang += 6) {
+            let px = x + rad * cos(ang) + random(-1,1);
+            let py = y + rad * sin(ang) + random(-1,1);
+            fill(col);
+            circle(px, py, 3);
+          }
+        }
+      }
+    </script>
   </body>
 </html>
 
-
+       
+    
